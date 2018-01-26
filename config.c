@@ -35,7 +35,7 @@ void bailOut(){ //Must be included if using bailout
 
 #define USE_SECOND_BATTERY 0 //Include this if using a second battery
 
-#define USE_LCD  1 //Include if using LCD
+#define USE_LCD  0 //Include if using LCD
 void lcdGenerateMessage(){ //Include if using LCD
   sprintf(lcdStr1, "8900 %4.1fV %4.1fV", getMainBatteryVoltage() / 1000.0, getSecondBatteryVoltage() / 1000.0);
   sprintf(lcdStr2, "%d   ", getTurntableDegrees());
@@ -47,10 +47,13 @@ void lcdGenerateMessage(){ //Include if using LCD
 
 //Slew Rate
 #define USE_SLEW  1 //Disable if slew interferes with move functions or slows robot down
-int MOTOR_SLEW[MOTOR_NUM] = {255, 40, 40, 255, 255, 255, 255, 40, 40, 255}; //Include if using slew
+int MOTOR_SLEW[MOTOR_NUM] = {255, 40, 40, 40, 40, 255, 255, 255, 255, 255}; //Include if using slew
 
 void move(int V, int H, int X){
-
+	motorReq[wheel_LF] = V - H;
+	motorReq[wheel_LB] = V - H;
+	motorReq[wheel_RF] = V + H;
+	motorReq[wheel_RB] = V + H;
 }
 
 #define USE_FPS 1 //Use field positioning system.
