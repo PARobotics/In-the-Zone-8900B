@@ -41,10 +41,22 @@ task autonomous(){
 	USER CONTROL
 */
 
+pid mobileGoalPID;
+sensor mobileGoalLift;
+#define MOBILE_GOAL_KP -0.08
+#define MOBILE_GOAL_KD -0.03
+#define MOBILE_GOAL_DEFAULT_V 15
+#define MOBILE_GOAL_MIN_V -127
+#define MOBILE_GOAL_MAX_V 127
+
 task usercontrol(){
   stopTask(autonomous);
 
   int V, H;
+
+  mobileGoalPID.kp = MOBILE_GOAL_KP;
+	mobileGoalPID.kd = MOBILE_GOAL_KD;
+	initializeSensor(&mobileGoalLift, 1.0, in1, &mobileGoalPID);
 
   while(true){
 		V = vexRT[Ch2];
@@ -75,69 +87,27 @@ task usercontrol(){
 			motor[mobile_goal_lift_2] = 0;
 		}
 
-		/* Moving Mobile Goal down with Cones
-		else if(MOBILE_GOAL_COMMAND == DOWN){ //Automatically lowers mobile goal stack into place
+		if(vexRT[Btn7L] == 1){
+			motor[mobile_goal_lift_1] = 127;
+			motor[mobile_goal_lift_2] = 127;
 
-      t0 = time1[T1];
+			while (sensorValue(POT_SENSOR) < 2700) {
+				// move down
+				updateSensor(&mobileGoalLift);
 
-      moveMobileGoalLift(DOWN);
-
-      updateSensor(&mobileGoalLift);
-
-
-
-	      while(!isTimedOut(t0 + 2500) && !isBailedOut() && mobileGoalLift.val > MOBILE_GOAL_BOTTOM_LIMIT){
-
-	      	updateSensor(&mobileGoalLift);
-
-	      	mobileGoalAppliedVoltage = sensorHold(&mobileGoalLift, MOBILE_GOAL_BOTTOM_LIMIT, MOBILE_GOAL_DEFAULT_V, MOBILE_GOAL_MIN_V, MOBILE_GOAL_MAX_V);
-
-	      	if(mobileGoalLift.val > 1600) mobileGoalAppliedVoltage -= 20; //Push the goal down to the ground at the end
-
-	     		moveMobileGoalLift(mobileGoalAppliedVoltage);
+				motor[mobile_goal_lift_1] = sensorHold(&mobileGoalLift, 2700, MOBILE_GOAL_DEFAULT_V, MOBILE_GOAL_MIN_V, MOBILE_GOAL_MAX_V);
+				motor[mobile_goal_lift_2] = sensorHold(&mobileGoalLift, 2700, MOBILE_GOAL_DEFAULT_V, MOBILE_GOAL_MIN_V, MOBILE_GOAL_MAX_V);
 
 
 
-					#if DEBUG_MOBILE_GOAL == 1
+				wait1Msec(10);
+			}
 
-						writeDebugStreamLine("[MOBILE_GOAL] %d %d %d %d %d", time1[T1] - t0, MOBILE_GOAL_BOTTOM_LIMIT, mobileGoalLift.val, mobileGoalLift.speed, mobileGoalAppliedVoltage);
+			motor[mobile_goal_lift_1] = 0;
+			motor[mobile_goal_lift_2] = 0;
 
-					#endif
+		}
 
-
-
-	        wait1Msec(10);
-
-	      }
-
-
-
-      coneNum = 0;
-
-      moveMobileGoalLift(STOP);
-
-      MOBILE_GOAL_COMMAND = STOP;
-
-    }
-
-    else if(MOBILE_GOAL_COMMAND == DOWN_WITHOUT_GOAL){ //Pushes the lift to ground if it doesn't have a mobile goal
-
-      t0 = time1[T1];
-
-      moveMobileGoalLift(DOWN);
-
-      updateSensorValue(&mobileGoalLift);
-
-      while(!isTimedOut(t0 + 2500) && !isBailedOut() && mobileGoalLift.val > MOBILE_GOAL_BOTTOM_LIMIT){
-
-      	updateSensorValue(&mobileGoalLift);
-
-        moveMobileGoalLift(DOWN);
-
-        wait1Msec(10);
-
-      }
-*/
 
     userControlUpdate();
   }
